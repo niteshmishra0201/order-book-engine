@@ -6,17 +6,13 @@
 
 class OrderBook {
 private:
-
-    std::map<double, PriceLevel> bids;
-
-
-    std::map<double, PriceLevel> asks;
-
-    std::unordered_map<int, Order*> orderIndex;
+    std::map<double, PriceLevel>       bids;
+    std::map<double, PriceLevel>       asks;
+    std::unordered_map<int, OrderLocation> orderIndex;
 
 public:
-    // Add a new order to the book
     void addOrder(Order order);
-
+    void cancelOrder(int orderId);
+    void modifyOrder(int orderId, int newQuantity);
     void printBook();
 };
