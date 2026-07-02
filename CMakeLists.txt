@@ -9,5 +9,6 @@ include_directories(include)
 
 add_executable(order_book_engine
     src/Order.cpp
+    src/OrderBook.cpp
     src/main_check4.cpp
 )

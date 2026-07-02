@@ -1,27 +1,23 @@
-#include "Types.h"
+#include "OrderBook.h"
 #include <iostream>
 
 int main() {
-    // Create one Order
-    Order o1;
-    o1.id        = 1;
-    o1.side      = Side::BUY;
-    o1.price     = 100.50;
-    o1.quantity  = 500;
-    o1.timestamp = 1000000;
+    OrderBook book;
 
-    std::cout << "Order ID: "    << o1.id       << "\n";
-    std::cout << "Price: "       << o1.price    << "\n";
-    std::cout << "Quantity: "    << o1.quantity << "\n";
-    std::cout << "Side: "        << (o1.side == Side::BUY ? "BUY" : "SELL") << "\n";
+    // Create and add some orders
+    Order o1 = {1, Side::BUY,  100.50, 500, 1000};
+    Order o2 = {2, Side::BUY,  100.50, 300, 2000};
+    Order o3 = {3, Side::BUY,   99.00, 200, 3000};
+    Order o4 = {4, Side::SELL, 101.00, 400, 4000};
+    Order o5 = {5, Side::SELL, 102.00, 600, 5000};
 
-    // Create one PriceLevel and push order into it
-    PriceLevel level;
-    level.price = 100.50;
-    level.orders.push_back(o1);
+    book.addOrder(o1);
+    book.addOrder(o2);
+    book.addOrder(o3);
+    book.addOrder(o4);
+    book.addOrder(o5);
 
-    std::cout << "\nPriceLevel price: " << level.price << "\n";
-    std::cout << "Orders at level: "   << level.orders.size() << "\n";
+    book.printBook();
 
     return 0;
 }
