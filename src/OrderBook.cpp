@@ -124,3 +124,63 @@ void OrderBook::modifyOrder(int orderId, int newQuantity) {
         }
     }
 }
+
+std::optional<double> OrderBook::getBestBid() {
+    // If bids side is empty, there's no best bid — return empty box
+    if (bids.empty()) {
+        return std::nullopt;
+    }
+    // rbegin() = last element in ascending sorted map = highest price
+    // ->first gets the key (price) of that element
+    return bids.rbegin()->first;
+}
+
+std::optional<double> OrderBook::getBestAsk() {
+    // If asks side is empty, there's no best ask — return empty box
+    if (asks.empty()) {
+        return std::nullopt;
+    }
+    // begin() = first element in ascending sorted map = lowest price
+    return asks.begin()->first;
+}
+
+std::vector<std::pair<double, int>> OrderBook::getBookDepth(Side side, int n) {
+    // This will hold our result — list of (price, totalQty) pairs
+    std::vector<std::pair<double, int>> depth;
+
+    // Pick which side we're reading from
+    // Note: we use const auto& here — we're only reading, never modifying
+    // const means "promise not to change this", & means "no copy, just reference"
+    if (side == Side::BUY) {
+        // Bids: best (highest) first, so iterate rbegin -> rend
+        int count = 0;
+        for (auto it = bids.rbegin(); it != bids.rend(); ++it) {
+            if (count >= n) break;   // stop once we have n levels
+
+            // Sum all order quantities at this price level
+            int totalQty = 0;
+            for (const auto& o : it->second.orders) {
+                totalQty += o.quantity;
+            }
+
+            depth.push_back({it->first, totalQty});
+            count++;
+        }
+    } else {
+        // Asks: best (lowest) first, so iterate begin -> end (normal order)
+        int count = 0;
+        for (auto it = asks.begin(); it != asks.end(); ++it) {
+            if (count >= n) break;
+
+            int totalQty = 0;
+            for (const auto& o : it->second.orders) {
+                totalQty += o.quantity;
+            }
+
+            depth.push_back({it->first, totalQty});
+            count++;
+        }
+    }
+
+    return depth;
+}
