@@ -13,7 +13,7 @@ private:
     std::unordered_map<int, OrderLocation> orderIndex;
 
 public:
-    void addOrder(Order order);
+    bool addOrder(Order order);
     void cancelOrder(int orderId);
     void modifyOrder(int orderId, int newQuantity);
     void printBook();

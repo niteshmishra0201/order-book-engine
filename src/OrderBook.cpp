@@ -1,23 +1,37 @@
 #include "OrderBook.h"
 #include <iostream>
 
-void OrderBook::addOrder(Order order)
-{
-    if (order.side == Side::BUY)
-    {
-
-        bids[order.price].price = order.price;
-
-        bids[order.price].orders.push_back(order);
+bool OrderBook::addOrder(Order order) {
+    // ── Validation 1: reject non-positive quantity ───────
+    // A quantity of 0 or less makes no logical sense as an order
+    if (order.quantity <= 0) {
+        std::cout << "Add rejected: order " << order.id
+                  << " has invalid quantity (" << order.quantity << ")\n";
+        return false;
     }
-    else
-    {
-        asks[order.price].price = order.price;
 
+    // ── Validation 2: reject duplicate order ID ──────────
+    // .count() returns 1 if the key exists, 0 if not — O(1) check
+    // We check this BEFORE touching the book, so a rejected
+    // order leaves absolutely no trace behind
+    if (orderIndex.count(order.id) > 0) {
+        std::cout << "Add rejected: order ID " << order.id
+                  << " already exists\n";
+        return false;
+    }
+
+    // ── Original logic — unchanged from Day 2/3 ──────────
+    if (order.side == Side::BUY) {
+        bids[order.price].price = order.price;
+        bids[order.price].orders.push_back(order);
+    } else {
+        asks[order.price].price = order.price;
         asks[order.price].orders.push_back(order);
     }
 
     orderIndex[order.id] = {order.side, order.price};
+
+    return true;   // success
 }
 
 void OrderBook::printBook()

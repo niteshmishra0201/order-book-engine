@@ -69,8 +69,62 @@ void test_cancelOrder_nonExistent()
     REQUIRE(depth[0].second == 500);
 }
 
-int main()
-{
+// ── Test 6: Zero quantity order is rejected ──────────────
+void test_addOrder_zeroQuantity_rejected() {
+    OrderBook book;
+
+    bool result = book.addOrder({1, Side::BUY, 100.0, 0, 1000});
+
+    REQUIRE(result == false);              // add should fail
+    REQUIRE(!book.getBestBid().has_value()); // book should remain empty
+}
+
+// ── Test 7: Negative quantity order is rejected ──────────
+void test_addOrder_negativeQuantity_rejected() {
+    OrderBook book;
+
+    bool result = book.addOrder({1, Side::BUY, 100.0, -50, 1000});
+
+    REQUIRE(result == false);
+    REQUIRE(!book.getBestBid().has_value());
+}
+
+// ── Test 8: Duplicate order ID is rejected ───────────────
+void test_addOrder_duplicateId_rejected() {
+    OrderBook book;
+
+    bool first  = book.addOrder({1, Side::BUY, 100.0, 500, 1000});
+    bool second = book.addOrder({1, Side::SELL, 105.0, 300, 2000}); // same ID!
+
+    REQUIRE(first == true);    // first one succeeds
+    REQUIRE(second == false);  // second one rejected
+
+    // The ORIGINAL order should be untouched — still a BUY at 100.0
+    auto bid = book.getBestBid();
+    REQUIRE(bid.has_value());
+    REQUIRE(bid.value() == 100.0);
+
+    // And the ask side should remain completely empty —
+    // proving the rejected order left NO trace at all
+    REQUIRE(!book.getBestAsk().has_value());
+}
+
+// ── Test 9: Cancelling the last order at a price level ───
+// removes the level ENTIRELY, not just empties it
+void test_cancelOrder_removesEmptyLevel() {
+    OrderBook book;
+
+    book.addOrder({1, Side::BUY, 100.0, 500, 1000});
+    book.cancelOrder(1);  // this was the ONLY order at this price
+
+    auto depth = book.getBookDepth(Side::BUY, 5);
+
+    // The level itself should be gone — size 0, not size 1 with qty 0
+    REQUIRE(depth.size() == 0);
+    REQUIRE(!book.getBestBid().has_value());
+}
+
+int main() {
     std::cout << "Running OrderBook tests...\n\n";
 
     test_addOrder_newPriceLevel();
@@ -79,10 +133,12 @@ int main()
     test_modifyOrder_reducingQuantity();
     test_cancelOrder_nonExistent();
 
+    test_addOrder_zeroQuantity_rejected();
+    test_addOrder_negativeQuantity_rejected();
+    test_addOrder_duplicateId_rejected();
+    test_cancelOrder_removesEmptyLevel();
+
     printTestSummary();
 
-    // Return non-zero exit code if any test failed
-    // This matters later for CI/CD pipelines — a failed test should
-    // make the build itself report failure, not just print text
     return (g_testsFailed == 0) ? 0 : 1;
 }
