@@ -12,3 +12,8 @@ add_executable(order_book_engine
     src/OrderBook.cpp
     src/main_check4.cpp
 )
+
+add_executable(run_tests
+    src/OrderBook.cpp
+    tests/test_orderbook.cpp
+)
